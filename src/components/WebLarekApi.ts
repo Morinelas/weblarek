@@ -1,23 +1,19 @@
-import { Api } from './base/Api';
 import { IApi, IProductsResponse, IOrderData, IOrderResult } from '../types';
 
-export class WebLarekApi extends Api {
+export class WebLarekApi {  // нет наследования, только композиция
   private _api: IApi;
 
   constructor(api: IApi) {
-    super(''); // базовый URL не нужен, т.к. api уже содержит baseUrl
     this._api = api;
   }
 
-  // GET запрос на получение списка товаров
-  async getProducts(): Promise<IProductsResponse> {
-    const response = await this._api.get('/product');
-    return response as IProductsResponse;
-  }
+ async getProducts(): Promise<IProductsResponse> {
+  const response = await this._api.get<IProductsResponse>('/product');
+  return response;
+ }
 
-  // POST запрос на отправку заказа
-  async postOrder(orderData: IOrderData): Promise<IOrderResult> {
-    const response = await this._api.post('/order/', orderData);
-    return response as IOrderResult;
-  }
+ async postOrder(orderData: IOrderData): Promise<IOrderResult> {
+  const response = await this._api.post<IOrderResult>('/order/', orderData);
+  return response;
+ }
 }

@@ -1,7 +1,7 @@
 import { IBuyer, IBuyerModel, TPayment, TBuyerErrors } from '../../types';
 
 export class BuyerModel implements IBuyerModel {
-  private _payment: TPayment = 'cash';
+  private _payment: TPayment | null = null;  // пустое значение
   private _email: string = '';
   private _phone: string = '';
   private _address: string = '';
@@ -36,7 +36,7 @@ export class BuyerModel implements IBuyerModel {
 
   // Очистить данные покупателя
   clear(): void {
-    this._payment = 'cash';
+    this._payment = null;
     this._email = '';
     this._phone = '';
     this._address = '';
@@ -44,14 +44,17 @@ export class BuyerModel implements IBuyerModel {
 
   // Валидация всех полей
   validate(): boolean {
-    return this._email.trim() !== '' && 
-           this._phone.trim() !== '' && 
-           this._address.trim() !== '';
+    return Object.keys(this.getErrors()).length === 0;
   }
 
   // Получить ошибки валидации для каждого поля
   getErrors(): TBuyerErrors {
     const errors: TBuyerErrors = {};
+
+     // Проверка payment
+    if (this._payment === null) {
+    errors.payment = 'Выберите способ оплаты';
+    }
     
     if (this._email.trim() === '') {
       errors.email = 'Укажите email';

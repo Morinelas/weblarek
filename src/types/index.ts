@@ -20,7 +20,7 @@ export type TPayment = 'cash' | 'card';
 
 // Интерфейс покупателя
 export interface IBuyer {
-  payment: TPayment;
+  payment: TPayment | null;
   email: string;
   phone: string;
   address: string;
@@ -89,6 +89,6 @@ export interface IOrderResult {
 
 // Интерфейс для API (уже есть в стартере, но уточним)
 export interface IApi {
-  get(uri: string): Promise<object>;
-  post(uri: string, data: object, method?: string): Promise<object>;
+  get<T>(uri: string): Promise<T>;
+  post<T>(uri: string, data: object, method?: string): Promise<T>;
 }
