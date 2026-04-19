@@ -4,94 +4,89 @@ import { IOrderFormData } from '../../types';
 export class OrderForm extends Form<IOrderFormData> {
   protected _paymentButtons: NodeListOf<HTMLButtonElement>;
   protected _addressInput: HTMLInputElement;
-  protected _selectedPayment: string | null = null;
+  private _onChange: (field: keyof IOrderFormData, value: string) => void;
 
-  constructor(container: HTMLElement, template: HTMLTemplateElement, onSubmit: (data: IOrderFormData) => void) {
-    super(container, template);
+  constructor(
+    template: HTMLTemplateElement, 
+    onChange: (field: keyof IOrderFormData, value: string) => void,
+    onSubmit: (data: IOrderFormData) => void
+  ) {
+    super(template);
+    
+    this._onChange = onChange;
+    this._onSubmitCallback = onSubmit;
     
     this._paymentButtons = this.container.querySelectorAll('.order__buttons .button');
     this._addressInput = this.container.querySelector('[name="address"]') as HTMLInputElement;
     this._submitButton = this.container.querySelector('.order__button') as HTMLButtonElement;
-
-    // Устанавливаем обработчики на кнопки оплаты
+    
+    // Вызываем onChange, без изменения внешнего вида
     this._paymentButtons.forEach(button => {
       button.addEventListener('click', () => {
-        this.selectPayment(button.name);
+        this._onChange('payment', button.name);
       });
     });
     
-    // Слушаем изменение адреса
     this._addressInput.addEventListener('input', () => {
-      this.validateAndNotify();
+      this._onChange('address', this._addressInput.value);
     });
-    
-    // Сохраняем колбэк для отправки
-    this._onSubmit = onSubmit;
   }
 
-  // Выбрать способ оплаты
-  private selectPayment(payment: string): void {
-    this._selectedPayment = payment;
-    
-    // Обновляем активный класс на кнопках
+  // Сеттер для выделения активной кнопки оплаты (вызывается из презентера)
+  set selectedPayment(value: string | null) {
     this._paymentButtons.forEach(button => {
-      if (button.name === payment) {
+      if (button.name === value) {
         button.classList.add('button_alt-active');
       } else {
         button.classList.remove('button_alt-active');
       }
     });
-
-    this.validateAndNotify();
   }
 
-  // Валидация формы
-  protected validate(): boolean {
-    const addressValid = this._addressInput.value.trim() !== '';
-    const paymentValid = this._selectedPayment !== null;
-    return addressValid && paymentValid;
+  // Сеттер для значения адреса
+  set address(value: string) {
+    this._addressInput.value = value;
   }
 
-  // Проверить и уведомить о валидности
-  private validateAndNotify(): void {
-    const isValid = this.validate();
+  setValid(isValid: boolean): void {
     this.toggleButton(isValid);
-    
-    // Показываем ошибки если есть
-    const errors: Partial<Record<keyof IOrderFormData, string>> = {};
-    if (this._addressInput.value.trim() === '') {
-      errors.address = 'Необходимо указать адрес';
-    }
-    if (this._selectedPayment === null) {
-      errors.payment = 'Выберите способ оплаты';
-    }
-    this.showErrors(errors);
   }
 
-  protected validate(): boolean {
-    const addressValid = this._addressInput.value.trim() !== '';
-    const paymentValid = this._selectedPayment !== null;
-    return addressValid && paymentValid;
+  setErrors(errors: Partial<Record<keyof IOrderFormData, string>>): void {
+    const filteredErrors: Partial<Record<keyof IOrderFormData, string>> = {};
+    if (errors.payment) filteredErrors.payment = errors.payment;
+    if (errors.address) filteredErrors.address = errors.address;
+    this.showErrors(filteredErrors);
   }
 
-  // Отправка формы
-  protected onSubmit(): void {
-    if (this.validate() && this._onSubmit) {
-      this._onSubmit({
-        payment: this._selectedPayment as 'cash' | 'card',
-        address: this._addressInput.value
-      });
-    }
-  }
-
-  // Сброс формы
-  reset(): void {
-    this._selectedPayment = null;
-    this._addressInput.value = '';
+  getData(): IOrderFormData {
+    let payment: 'cash' | 'card' | null = null;
     this._paymentButtons.forEach(button => {
-      button.classList.remove('button_alt-active');
+      if (button.classList.contains('button_alt-active')) {
+        payment = button.name as 'cash' | 'card';
+      }
     });
+    return {
+      payment: payment!,
+      address: this._addressInput.value
+    };
+  }
+
+  reset(): void {
+    this.selectedPayment = null;
+    this.address = '';
     this.toggleButton(false);
     this.showErrors({});
+  }
+
+  protected onSubmit(): void {
+    if (this._onSubmitCallback && this.validate()) {
+      this._onSubmitCallback(this.getData());
+    }
+  }
+
+  protected validate(): boolean {
+    const paymentSelected = this.container.querySelector('.button_alt-active') !== null;
+    return paymentSelected && this._addressInput.value.trim() !== '';
   }
 }

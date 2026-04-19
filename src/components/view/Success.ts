@@ -5,29 +5,30 @@ export class Success extends Component<ISuccessData> {
   protected _description: HTMLElement;
   protected _closeButton: HTMLButtonElement;
 
-  constructor(container: HTMLElement, template: HTMLTemplateElement, onClose: () => void) {
-    super(container);
+  constructor(template: HTMLTemplateElement, onClose: () => void) {
+    // Проверяем, что template существует
+    if (!template) {
+      throw new Error('Success: template не найден');
+    }
     
-    const element = template.content.firstElementChild?.cloneNode(true) as HTMLElement;
-    if (!element) throw new Error('Не удалось клонировать элемент из шаблона');
+    const element = template.content?.firstElementChild?.cloneNode(true) as HTMLElement;
+    if (!element) {
+      throw new Error('Success: не удалось клонировать элемент из шаблона');
+    }
     
-    this.container = element;
+    super(element);
     
     this._description = this.container.querySelector('.order-success__description') as HTMLElement;
     this._closeButton = this.container.querySelector('.order-success__close') as HTMLButtonElement;
     
-    this._closeButton.addEventListener('click', onClose);
-  }
-
-  // Установить сумму заказа
-  setTotal(total: number): void {
-    this._description.textContent = `Списано ${total} синапсов`;
-  }
-
-  render(data?: ISuccessData): HTMLElement {
-    if (data) {
-      this.setTotal(data.total);
+    if (this._closeButton) {
+      this._closeButton.addEventListener('click', onClose);
     }
-    return this.container;
+  }
+
+  setTotal(total: number): void {
+    if (this._description) {
+      this._description.textContent = `Списано ${total} синапсов`;
+    }
   }
 }

@@ -104,7 +104,7 @@ export type IBasketCardData = Pick<IProduct, 'id' | 'title' | 'price'> & { index
 
 // Данные для корзины
 export interface IBasketData {
-  items: IBasketCardData[];
+  items: HTMLElement[];
   total: number;
 }
 

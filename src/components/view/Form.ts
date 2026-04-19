@@ -6,39 +6,41 @@ export abstract class Form<T> extends Component<T> {
   protected _errors: HTMLElement;
   protected _onSubmit?: (data: T) => void;
 
-  constructor(protected readonly container: HTMLElement, template: HTMLTemplateElement) {
-    super(container);
+  constructor(template: HTMLTemplateElement) {
+    if (!template) {
+      throw new Error('Form: template не найден');
+    }
     
-    const element = template.content.firstElementChild?.cloneNode(true) as HTMLElement;
-    if (!element) throw new Error('Не удалось клонировать элемент из шаблона');
+    const element = template.content?.firstElementChild?.cloneNode(true) as HTMLElement;
+    if (!element) {
+      throw new Error('Form: не удалось клонировать элемент из шаблона');
+    }
     
-    this.container = element;
+    super(element);
     
     this._form = this.container as HTMLFormElement;
     this._submitButton = this.container.querySelector('.button') as HTMLButtonElement;
     this._errors = this.container.querySelector('.form__errors') as HTMLElement;
     
-    // Устанавливаем слушатель на отправку формы
+    if (this._form) {
     this._form.addEventListener('submit', (e) => {
       e.preventDefault();
       this.onSubmit();
     });
+    }
   }
 
-  // Установить значение поля
   setValue(field: keyof T, value: string): void {
-    const input = this._form.querySelector(`[name="${String(field)}"]`) as HTMLInputElement;
+    const input = this._form?.querySelector(`[name="${String(field)}"]`) as HTMLInputElement;
     if (input) {
       input.value = value;
     }
   }
 
-  // Валидация формы (должна быть переопределена в дочерних классах)
   protected validate(): boolean {
     return true;
   }
 
-  // Показать ошибки
   showErrors(errors: Partial<Record<keyof T, string>>): void {
     if (this._errors) {
       const errorMessages = Object.values(errors).filter(Boolean).join(', ');
@@ -46,20 +48,11 @@ export abstract class Form<T> extends Component<T> {
     }
   }
 
-  // Заблокировать/разблокировать кнопку
   toggleButton(state: boolean): void {
     if (this._submitButton) {
       this._submitButton.disabled = !state;
     }
   }
 
-  // Обработчик отправки формы (будет переопределен в дочерних классах)
   protected onSubmit(): void {}
-
-  render(data?: Partial<T>): HTMLElement {
-    if (data) {
-      Object.assign(this, data);
-    }
-    return this.container;
-  }
 }

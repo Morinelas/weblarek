@@ -1,25 +1,31 @@
-import { Card } from './Card';
+import { ProductCard } from './ProductCard';
 import { ICatalogCardData } from '../../types';
-import { CDN_URL } from '../../utils/constants';
 
-export class CatalogCard extends Card<ICatalogCardData> {
+export class CatalogCard extends ProductCard<ICatalogCardData> {
   protected _button: HTMLButtonElement;
 
-  constructor(container: HTMLElement, template: HTMLTemplateElement, onClick: (id: string) => void) {
-    super(container, template);
+  constructor(template: HTMLTemplateElement, onClick: () => void) {
+    super(template);
     
     this._button = this.container.querySelector('.card__button') as HTMLButtonElement;
-   // Обработчик клика
+    
+    // Клик по кнопке
+    if (this._button) {
+      this._button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onClick();
+      });
+    }
+    
+    // Клик по всей карточке
     this.container.addEventListener('click', () => {
-      onClick(this.id);
+      onClick();
     });
   }
 
-  // Переопределяем сеттер цены, чтобы управлять кнопкой
   set price(value: number | null) {
     super.price = value;
     
-    // Если цена null (бесценно) — блокируем кнопку и меняем текст
     if (value === null) {
       if (this._button) {
         this._button.disabled = true;
@@ -31,19 +37,5 @@ export class CatalogCard extends Card<ICatalogCardData> {
         this._button.textContent = 'Купить';
       }
     }
-  }
-
-  set id(value: string) {
-    this.container.dataset.id = value;
-  }
-
-  set image(value: string) {
-    if (this._image) {
-      this.setImage(this._image, value, this._title?.textContent || 'Товар');
-    }
-  }
-
-  get id(): string {
-    return this.container.dataset.id || '';
   }
 }

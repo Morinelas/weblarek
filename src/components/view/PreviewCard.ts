@@ -1,36 +1,37 @@
-import { Card } from './Card';
+import { ProductCard } from './ProductCard';
 import { IPreviewCardData } from '../../types';
 
-export class PreviewCard extends Card<IPreviewCardData> {
+export class PreviewCard extends ProductCard<IPreviewCardData> {
   protected _description: HTMLElement;
   protected _button: HTMLButtonElement;
   private _inCart: boolean = false;
-  private _onAdd: (id: string) => void;
-  private _onRemove: (id: string) => void;
+  private _onAdd: () => void;
+  private _onRemove: () => void;
   private _isAvailable: boolean = true;
 
   constructor(
-    container: HTMLElement, 
-    template: HTMLTemplateElement, 
-    onAdd: (id: string) => void,
-    onRemove: (id: string) => void
+    template: HTMLTemplateElement,
+    onAdd: () => void,
+    onRemove: () => void
   ) {
-    super(container, template);
+    super(template);
     
     this._description = this.container.querySelector('.card__text') as HTMLElement;
     this._button = this.container.querySelector('.card__button') as HTMLButtonElement;
     this._onAdd = onAdd;
     this._onRemove = onRemove;
     
-    this._button.addEventListener('click', () => {
-      if (!this._isAvailable) return; // Если товар недоступен — ничего не делаем
-      
-      if (this._inCart) {
-        this._onRemove(this.id);
-      } else {
-        this._onAdd(this.id);
-      }
-    });
+    if (this._button) {
+      this._button.addEventListener('click', () => {
+        if (!this._isAvailable) return;
+        
+        if (this._inCart) {
+          this._onRemove();
+        } else {
+          this._onAdd();
+        }
+      });
+    }
   }
 
   set description(value: string) {
@@ -39,11 +40,9 @@ export class PreviewCard extends Card<IPreviewCardData> {
     }
   }
 
-  // Переопределяем сеттер цены
   set price(value: number | null) {
     super.price = value;
     
-    // Если цена null (бесценно) — блокируем кнопку и меняем текст
     if (value === null) {
       this._isAvailable = false;
       if (this._button) {

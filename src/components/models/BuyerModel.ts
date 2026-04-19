@@ -30,8 +30,6 @@ export class BuyerModel implements IBuyerModel {
     }
      // Генерируем событие об изменении данных
     this._events.emit('buyer:changed', this.getData());
-    // Генерируем событие об изменении валидности
-    this._events.emit('buyer:validity', this.validate());
   }
 
   // Получить все данные покупателя
@@ -51,35 +49,50 @@ export class BuyerModel implements IBuyerModel {
     this._phone = '';
     this._address = '';
     this._events.emit('buyer:changed', this.getData());
-    this._events.emit('buyer:validity', false);
   }
 
-  // Валидация всех полей
+  // Валидация только для первого шага (OrderForm)
+  validateOrderStep(): boolean {
+    return this._payment !== null && this._address.trim() !== '';
+  }
+
+  // Валидация только для второго шага (ContactsForm)
+  validateContactsStep(): boolean {
+    return this._email.trim() !== '' && this._phone.trim() !== '';
+  }
+
+  // Полная валидация (для отправки заказа)
   validate(): boolean {
-    return Object.keys(this.getErrors()).length === 0;
+    return this.validateOrderStep() && this.validateContactsStep();
   }
 
-  // Получить ошибки валидации для каждого поля
-  getErrors(): TBuyerErrors {
+  // Ошибки для первого шага
+  getOrderErrors(): TBuyerErrors {
     const errors: TBuyerErrors = {};
-
-     // Проверка payment
+  
     if (this._payment === null) {
-    errors.payment = 'Выберите способ оплаты';
+      errors.payment = 'Выберите способ оплаты';
     }
-    
+    if (this._address.trim() === '') {
+      errors.address = 'Необходимо указать адрес';
+    }
+  
+    return errors;
+  }
+
+  // Ошибки для второго шага
+  getContactsErrors(): TBuyerErrors {
+    const errors: TBuyerErrors = {};
+  
     if (this._email.trim() === '') {
       errors.email = 'Укажите email';
+    } else if (!this._email.includes('@')) {
+      errors.email = 'Введите корректный email';
     }
-    
     if (this._phone.trim() === '') {
       errors.phone = 'Укажите телефон';
     }
-    
-    if (this._address.trim() === '') {
-      errors.address = 'Укажите адрес';
-    }
-    
+  
     return errors;
   }
 }
