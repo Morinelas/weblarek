@@ -92,3 +92,29 @@ export interface IApi {
   get<T>(uri: string): Promise<T>;
   post<T>(uri: string, data: object, method?: string): Promise<T>;
 }
+
+// Данные для карточки каталога
+export type ICatalogCardData = Pick<IProduct, 'id' | 'title' | 'price' | 'image' | 'category'>;
+
+// Данные для детальной карточки
+export type IPreviewCardData = IProduct;
+
+// Данные для карточки корзины
+export type IBasketCardData = Pick<IProduct, 'id' | 'title' | 'price'> & { index: number };
+
+// Данные для корзины
+export interface IBasketData {
+  items: IBasketCardData[];
+  total: number;
+}
+
+// Данные для формы заказа
+export type IOrderFormData = Pick<IBuyer, 'payment' | 'address'>;
+
+// Данные для формы контактов
+export type IContactsFormData = Pick<IBuyer, 'email' | 'phone'>;
+
+// Данные для успешного заказа
+export interface ISuccessData {
+  total: number;
+}

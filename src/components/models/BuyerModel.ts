@@ -1,11 +1,17 @@
 import { IBuyer, IBuyerModel, TPayment, TBuyerErrors } from '../../types';
+import { EventEmitter } from '../base/EventEmitter';
 
 export class BuyerModel implements IBuyerModel {
   private _payment: TPayment | null = null;  // пустое значение
   private _email: string = '';
   private _phone: string = '';
   private _address: string = '';
+  private _events: EventEmitter;
 
+  constructor(events: EventEmitter) {
+    this._events = events;
+  }
+  
   // Сохранить значение конкретного поля
   setField<K extends keyof IBuyer>(field: K, value: IBuyer[K]): void {
     switch (field) {
@@ -22,6 +28,10 @@ export class BuyerModel implements IBuyerModel {
         this._address = value as string;
         break;
     }
+     // Генерируем событие об изменении данных
+    this._events.emit('buyer:changed', this.getData());
+    // Генерируем событие об изменении валидности
+    this._events.emit('buyer:validity', this.validate());
   }
 
   // Получить все данные покупателя
@@ -40,6 +50,8 @@ export class BuyerModel implements IBuyerModel {
     this._email = '';
     this._phone = '';
     this._address = '';
+    this._events.emit('buyer:changed', this.getData());
+    this._events.emit('buyer:validity', false);
   }
 
   // Валидация всех полей

@@ -1,188 +1,230 @@
-import './scss/styles.scss';
+// ============================================
+// ИМПОРТЫ
+// ============================================
 import { API_URL } from './utils/constants';
-// Импортируем тестовые данные
-import { apiProducts } from './utils/data';
-
-// Импортируем модели данных
+import { Api } from './components/base/Api';
+import { EventEmitter } from './components/base/Events';
 import { CatalogModel } from './components/models/CatalogModel';
 import { CartModel } from './components/models/CartModel';
 import { BuyerModel } from './components/models/BuyerModel';
-
-// Импортируем типы для информации (чтобы TS понимал структуру)
-import { IProduct } from './types';
-
-// ============================================
-// 1. ПРОВЕРКА РАБОТЫ КАТАЛОГА (CatalogModel)
-// ============================================
-console.log('========== ПРОВЕРКА КАТАЛОГА ==========');
-
-const catalogModel = new CatalogModel();
-
-// Проверяем setItems() и getItems()
-console.log('1. Сохраняем товары в каталог...');
-catalogModel.setItems(apiProducts.items);
-console.log('2. Получаем массив товаров из каталога:');
-console.log(catalogModel.getItems());
-console.log(`   (всего товаров: ${catalogModel.getItems().length})`);
-
-// Проверяем getProductById()
-console.log('\n3. Ищем товар по id "1":');
-const productById = catalogModel.getProductById('1');
-console.log('   Найденный товар:', productById);
-
-// Проверяем setSelectedProduct() и getSelectedProduct()
-console.log('\n4. Сохраняем товар для подробного просмотра (выбираем товар с id "2"):');
-const productToSelect = catalogModel.getProductById('2');
-if (productToSelect) {
-    catalogModel.setSelectedProduct(productToSelect);
-    console.log('   Выбранный товар:', catalogModel.getSelectedProduct());
-}
-
-console.log('\n✅ Проверка каталога завершена\n');
-
-// ============================================
-// 2. ПРОВЕРКА РАБОТЫ КОРЗИНЫ (CartModel)
-// ============================================
-console.log('========== ПРОВЕРКА КОРЗИНЫ ==========');
-
-const cartModel = new CartModel();
-
-// Посмотрим, какие id есть на самом деле
-const allProducts = catalogModel.getItems();
-console.log('Доступные id товаров:', allProducts.map(p => ({ id: p.id, title: p.title })));
-
-// Берем реальные товары из каталога
-const productA = allProducts[0];  // первый товар
-const productB = allProducts[1];  // второй товар
-
-console.log('\n2. Добавляем товары в корзину:');
-if (productA) {
-    cartModel.addItem(productA);
-    console.log(`   + Добавлен: ${productA.title} (${productA.price} ₽)`);
-}
-if (productB) {
-    cartModel.addItem(productB);
-    console.log(`   + Добавлен: ${productB.title} (${productB.price} ₽)`);
-}
-
-console.log(`\n3. Состояние корзины после добавления:`);
-console.log(`   Товаров в корзине: ${cartModel.getCount()}`);
-console.log(`   Общая стоимость: ${cartModel.getTotal()} ₽`);
-console.log(`   Содержимое:`, cartModel.getItems());
-
-// Проверяем contains() с реальным id
-if (productA) {
-    console.log(`\n4. Проверяем наличие товара с id "${productA.id}":`);
-    console.log(`   Товар в корзине? ${cartModel.contains(productA.id) ? 'Да ✅' : 'Нет ❌'}`);
-}
-
-// Проверяем removeItem()
-if (productA) {
-    console.log(`\n5. Удаляем товар с id "${productA.id}" из корзины:`);
-    cartModel.removeItem(productA.id);
-    console.log(`   Товаров в корзине после удаления: ${cartModel.getCount()}`);
-}
-
-console.log('\n✅ Проверка корзины завершена\n');
-
-// ============================================
-// 3. ПРОВЕРКА РАБОТЫ ПОКУПАТЕЛЯ (BuyerModel)
-// ============================================
-console.log('========== ПРОВЕРКА МОДЕЛИ ПОКУПАТЕЛЯ ==========');
-
-const buyerModel = new BuyerModel();
-
-// Проверяем начальное состояние
-console.log('1. Начальное состояние данных покупателя:');
-console.log('   Данные:', buyerModel.getData());
-console.log('   Валидность:', buyerModel.validate());
-console.log('   Ошибки:', buyerModel.getErrors());
-
-// Проверяем setField() - заполняем данные по одному полю
-console.log('\n2. Заполняем данные покупателя (по одному полю):');
-buyerModel.setField('email', 'test@example.com');
-console.log('   ✓ Установлен email: test@example.com');
-buyerModel.setField('phone', '+7 (999) 123-45-67');
-console.log('   ✓ Установлен телефон: +7 (999) 123-45-67');
-buyerModel.setField('address', 'г. Москва, ул. Тестовая, д. 1');
-console.log('   ✓ Установлен адрес: г. Москва, ул. Тестовая, д. 1');
-buyerModel.setField('payment', 'card');
-console.log('   ✓ Установлен способ оплаты: card');
-
-console.log('\n3. Данные покупателя после заполнения:');
-console.log('   Данные:', buyerModel.getData());
-console.log('   Валидность:', buyerModel.validate());
-console.log('   Ошибки:', buyerModel.getErrors());
-
-// Проверяем валидацию с неполными данными
-console.log('\n4. Проверяем валидацию с неполными данными:');
-const buyerModel2 = new BuyerModel();
-buyerModel2.setField('email', 'test@example.com');
-buyerModel2.setField('phone', '');
-buyerModel2.setField('address', '');
-console.log('   Данные (только email):', buyerModel2.getData());
-console.log('   Валидность:', buyerModel2.validate());
-console.log('   Ошибки:', buyerModel2.getErrors());
-
-// Проверяем clear()
-console.log('\n5. Очищаем данные покупателя:');
-buyerModel.clear();
-console.log('   Данные после очистки:', buyerModel.getData());
-console.log('   Валидность:', buyerModel.validate());
-
-console.log('\n✅ Проверка модели покупателя завершена\n');
-
-// ============================================
-// ИТОГОВЫЙ ВЫВОД
-// ============================================
-console.log('========== ВСЕ ПРОВЕРКИ ЗАВЕРШЕНЫ ==========');
-console.log('✅ Модель каталога (CatalogModel) - работает');
-console.log('✅ Модель корзины (CartModel) - работает');
-console.log('✅ Модель покупателя (BuyerModel) - работает');
-console.log('\n📝 Модели данных полностью самостоятельны и не зависят от UI');
-
-// ============================================
-// 4. ПОДКЛЮЧЕНИЕ К СЕРВЕРУ
-// ============================================
-import { Api } from './components/base/Api';
 import { WebLarekApi } from './components/WebLarekApi';
-import { IProductsResponse } from './types';
+import { Modal } from './components/view/Modal';
+import { Basket } from './components/view/Basket';
+import { OrderForm } from './components/view/OrderForm';
+import { ContactsForm } from './components/view/ContactsForm';
+import { Success } from './components/view/Success';
+import { CatalogCard } from './components/view/CatalogCard';
+import { PreviewCard } from './components/view/PreviewCard';
+import { BasketCard } from './components/view/BasketCard';
+import { IProduct } from './types';
+import './scss/styles.scss';
+import { CDN_URL } from './utils/constants';
 
-async function loadProductsFromServer() {
-  console.log('\n========== ЗАГРУЗКА ТОВАРОВ С СЕРВЕРА ==========');
+// ============================================
+// ИНИЦИАЛИЗАЦИЯ БРОКЕРА СОБЫТИЙ И МОДЕЛЕЙ
+// ============================================
+const events = new EventEmitter();
+const catalogModel = new CatalogModel(events);
+const cartModel = new CartModel(events);
+const buyerModel = new BuyerModel(events);
+
+// ============================================
+// ИНИЦИАЛИЗАЦИЯ API И ЗАГРУЗКА ТОВАРОВ
+// ============================================
+const api = new Api(API_URL);
+const webLarekApi = new WebLarekApi(api);
+
+// Загружаем товары с сервера
+webLarekApi.getProducts()
+  .then(data => {
+    catalogModel.setItems(data.items);
+  })
+  .catch(err => console.error('Ошибка загрузки товаров:', err));
+
+// ============================================
+// DOM ЭЛЕМЕНТЫ
+// ============================================
+const gallery = document.querySelector('.gallery') as HTMLElement;
+const basketHeaderButton = document.querySelector('.header__basket') as HTMLButtonElement;
+const basketCounter = document.querySelector('.header__basket-counter') as HTMLElement;
+
+// ============================================
+// ТЕМПЛЕЙТЫ
+// ============================================
+const catalogTemplate = document.querySelector('#card-catalog') as HTMLTemplateElement;
+const previewTemplate = document.querySelector('#card-preview') as HTMLTemplateElement;
+const basketCardTemplate = document.querySelector('#card-basket') as HTMLTemplateElement;
+const basketTemplate = document.querySelector('#basket') as HTMLTemplateElement;
+const orderTemplate = document.querySelector('#order') as HTMLTemplateElement;
+const contactsTemplate = document.querySelector('#contacts') as HTMLTemplateElement;
+const successTemplate = document.querySelector('#success') as HTMLTemplateElement;
+
+// ============================================
+// КОМПОНЕНТЫ
+// ============================================
+let modal: Modal;
+let basket: Basket;
+let orderForm: OrderForm;
+let contactsForm: ContactsForm;
+let success: Success;
+
+// ============================================
+// ОБРАБОТЧИКИ СОБЫТИЙ ПРЕЗЕНТЕРА
+// ============================================
+
+// 1. Каталог изменен - отрисовываем карточки
+events.on('catalog:changed', (items: IProduct[]) => {
+  gallery.innerHTML = '';
+  items.forEach(product => {
+    const card = new CatalogCard(gallery, catalogTemplate, (id) => {
+      // Выбор карточки для просмотра
+      const selectedProduct = catalogModel.getProductById(id);
+      if (selectedProduct) {
+        catalogModel.setSelectedProduct(selectedProduct);
+      }
+    });
+    card.id = product.id;
+    card.title = product.title;
+    card.price = product.price;
+    card.image = CDN_URL + product.image;
+    card.category = product.category;
+    gallery.appendChild(card.render());
+  });
+});
+
+// 2. Выбран товар для просмотра - открываем модальное окно
+events.on('catalog:selected', (product: IProduct | null) => {
+  if (product) {
+    const previewCard = new PreviewCard(
+        gallery,
+        previewTemplate,
+        (id) => {
+          // Добавляем товар в корзину
+          cartModel.addItem(product);
+          // Обновляем состояние кнопки
+          previewCard.inCart = true;
+          modal.close();
+        },
+        (id) => {
+          // Удаляем товар из корзины
+          cartModel.removeItem(id);
+          // Обновляем состояние кнопки
+          previewCard.inCart = false;
+          modal.close();
+        }
+      );
+
+    previewCard.id = product.id;
+    previewCard.title = product.title;
+    previewCard.price = product.price;
+    previewCard.image = CDN_URL + product.image;
+    previewCard.category = product.category;
+    previewCard.description = product.description;
+
+    // Проверяем, есть ли товар уже в корзине
+    previewCard.inCart = cartModel.contains(product.id);
+    modal.setContent(previewCard.render());
+    modal.open();
+  }
+});
+
+// 3. Корзина изменена - обновляем счетчик и содержимое
+events.on('cart:changed', (data: { items: IProduct[], total: number, count: number }) => {
+  basketCounter.textContent = String(data.count);
   
-  // Создаем экземпляр базового API с адресом из .env
-  const baseApi = new Api(API_URL);
+  if (basket) {
+    const basketItems = data.items.map((item, index) => {
+      const card = new BasketCard(gallery, basketCardTemplate, (id) => {
+        cartModel.removeItem(id);
+      });
+      card.id = item.id;
+      card.title = item.title;
+      card.price = item.price;
+      card.index = index + 1;
+      return card.render();
+    });
+    basket.updateItems(basketItems);
+    basket.updateTotal(data.total);
+  }
+});
+
+// 4. Открытие корзины (по клику на иконку)
+basketHeaderButton.addEventListener('click', () => {
+  if (!basket) {
+    basket = new Basket(gallery, basketTemplate, () => {
+      events.emit('basket:order');
+    });
+  }
   
-  // Создаем экземпляр нашего WebLarekApi
-  const webLarekApi = new WebLarekApi(baseApi);
+  const cartItems = cartModel.getItems();
+  const basketItems = cartItems.map((item, index) => {
+    const card = new BasketCard(gallery, basketCardTemplate, (id) => {
+      cartModel.removeItem(id);
+    });
+    card.id = item.id;
+    card.title = item.title;
+    card.price = item.price;
+    card.index = index + 1;
+    return card.render();
+  });
+  basket.updateItems(basketItems);
+  basket.updateTotal(cartModel.getTotal());
+  
+  modal.setContent(basket.render());
+  modal.open();
+});
+
+// 5. Оформление заказа
+events.on('basket:order', () => {
+  orderForm = new OrderForm(gallery, orderTemplate, (data) => {
+    buyerModel.setField('payment', data.payment);
+    buyerModel.setField('address', data.address);
+    events.emit('order:next');
+  });
+  modal.setContent(orderForm.render());
+});
+
+// 6. Переход к форме контактов
+events.on('order:next', () => {
+  contactsForm = new ContactsForm(gallery, contactsTemplate, (data) => {
+    buyerModel.setField('email', data.email);
+    buyerModel.setField('phone', data.phone);
+    events.emit('contacts:submit');
+  });
+  modal.setContent(contactsForm.render());
+});
+
+// 7. Отправка заказа
+events.on('contacts:submit', async () => {
+  const buyerData = buyerModel.getData();
+  const orderData = {
+    payment: buyerData.payment!,
+    email: buyerData.email,
+    phone: buyerData.phone,
+    address: buyerData.address,
+    total: cartModel.getTotal(),
+    items: cartModel.getItems().map(item => item.id)
+  };
   
   try {
-    // Получаем товары с сервера
-    const productsResponse: IProductsResponse = await webLarekApi.getProducts();
-    console.log('1. Ответ от сервера:', productsResponse);
-    console.log(`2. Получено товаров: ${productsResponse.items.length}`);
-    
-    // Сохраняем товары в модель каталога
-    catalogModel.setItems(productsResponse.items);
-    console.log('3. Товары сохранены в каталог');
-    
-    // Проверяем, что сохранилось
-    const savedProducts = catalogModel.getItems();
-    console.log('4. Каталог после сохранения:');
-    console.log(savedProducts);
-    console.log(`   (всего товаров: ${savedProducts.length})`);
-    
-    // Выводим названия всех товаров для наглядности
-    console.log('\n5. Список товаров в магазине:');
-    savedProducts.forEach((product, index) => {
-      console.log(`   ${index + 1}. ${product.title} — ${product.price} ₽`);
+    const result = await webLarekApi.postOrder(orderData);
+    success = new Success(gallery, successTemplate, () => {
+      modal.close();
+      cartModel.clear();
+      buyerModel.clear();
     });
-    
+    success.setTotal(result.total);
+    modal.setContent(success.render());
   } catch (error) {
-    console.error('Ошибка при загрузке товаров с сервера:', error);
+    console.error('Ошибка оформления заказа:', error);
   }
-}
+});
 
-// Запускаем загрузку товаров с сервера
-loadProductsFromServer();
+// 8. Изменение валидности данных покупателя - обновляем состояние кнопок форм
+events.on('buyer:validity', (isValid: boolean) => {
+  if (orderForm) orderForm.toggleButton(isValid);
+  if (contactsForm) contactsForm.toggleButton(isValid);
+});
+
+// 9. Модальное окно
+modal = new Modal(document.querySelector('#modal-container') as HTMLElement, events);
