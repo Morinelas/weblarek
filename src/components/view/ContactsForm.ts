@@ -61,17 +61,9 @@ export class ContactsForm extends Form<IContactsFormData> {
     this.showErrors({});
   }
 
-  // Переопределяем метод onSubmit из базового класса
   protected onSubmit(): void {
-    if (this._onSubmitCallback && this.validate()) {
+    if (this._onSubmitCallback) {
       this._onSubmitCallback(this.getData());
     }
-  }
-
-  // Валидация для этой формы
-  protected validate(): boolean {
-    const emailValid = this._emailInput.value.trim() !== '' && this._emailInput.value.includes('@');
-    const phoneValid = this._phoneInput.value.trim() !== '';
-    return emailValid && phoneValid;
   }
 }

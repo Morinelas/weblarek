@@ -80,13 +80,8 @@ export class OrderForm extends Form<IOrderFormData> {
   }
 
   protected onSubmit(): void {
-    if (this._onSubmitCallback && this.validate()) {
+    if (this._onSubmitCallback) {
       this._onSubmitCallback(this.getData());
     }
-  }
-
-  protected validate(): boolean {
-    const paymentSelected = this.container.querySelector('.button_alt-active') !== null;
-    return paymentSelected && this._addressInput.value.trim() !== '';
   }
 }

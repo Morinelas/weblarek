@@ -21,8 +21,9 @@ export abstract class ProductCard<T> extends Card<T> {
   set category(value: string) {
     if (this._category) {
       this._category.textContent = value;
+      
       const modifier = categoryMap[value as keyof typeof categoryMap] || 'card__category_other';
-      this._category.classList.add(modifier);
+      this._category.className = `card__category ${modifier}`;
     }
   }
 }

@@ -115,7 +115,7 @@ events.on('catalog:changed', (items: IProduct[]) => {
     card.price = product.price;
     card.image = CDN_URL + product.image;
     card.category = product.category;
-    cards.push(card.container);
+    cards.push(card.render());
   });
   
   gallery.renderCards(cards);
@@ -148,7 +148,7 @@ events.on('catalog:selected', (product: IProduct | null) => {
     previewCard.description = product.description;
     previewCard.inCart = cartModel.contains(product.id);
     
-    modal.setContent(previewCard.container);
+    modal.setContent(previewCard.render());
     modal.open();
   }
 });
@@ -165,7 +165,7 @@ events.on('cart:changed', (data: { items: IProduct[], total: number, count: numb
       card.title = item.title;
       card.price = item.price;
       card.index = index + 1;
-      return card.container;
+      return card.render();
     });
     basket.updateItems(basketItems);
     basket.updateTotal(data.total);
@@ -175,14 +175,14 @@ events.on('cart:changed', (data: { items: IProduct[], total: number, count: numb
 // 4. Оформление заказа
 events.on('basket:order', () => {
   orderForm.reset();  // сбрасываем предыдущие данные
-  modal.setContent(orderForm.container);
+  modal.setContent(orderForm.render());
   modal.open();
 });
 
 // 5. Переход к форме контактов
 events.on('order:next', () => {
   contactsForm.reset();
-  modal.setContent(contactsForm.container);
+  modal.setContent(contactsForm.render());
 });
 
 // 6. Отправка заказа
@@ -210,7 +210,7 @@ events.on('contacts:submit', async () => {
     
     // Показываем экран успеха
     success.setTotal(result.total);
-    modal.setContent(success.container);
+    modal.setContent(success.render());
   } catch (error) {
     console.error('Ошибка оформления заказа:', error);
   }
@@ -245,20 +245,7 @@ events.on('buyer:changed', () => {
 
 // 8. Подписка на клик по корзине
 header.onBasketClick(() => {
-  const cartItems = cartModel.getItems();
-  const basketItems = cartItems.map((item, index) => {
-    const card = new BasketCard(basketCardTemplate, () => {
-      cartModel.removeItem(item.id);
-    });
-    card.title = item.title;
-    card.price = item.price;
-    card.index = index + 1;
-    return card.container;
-  });
-  basket.updateItems(basketItems);
-  basket.updateTotal(cartModel.getTotal());
-  
-  modal.setContent(basket.container);
+  modal.setContent(basket.render());
   modal.open();
 });
 
